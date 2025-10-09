@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    stages {
+        stage ('PULL') {    
+            steps {
+                git branch: 'dev', url: 'https://github.com/shubhamkalsait/ginger-reservation-app.git'
+            }
+        }
+        stage ('BUILD') {    
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage ('TEST') {    
+            steps {
+                withSonarQubeEnv(installationName: 'sonar', credentialsId: 'sonar-cred') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=ginger-backend-app' 
+                }
+            }
+        }
+        stage ('QUALITY-GATE') {    
+            steps {
+                timeout(10) {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'sonar-cred'
+                }
+            }
+        }
+        stage ('DOCKER-BUILD') {    
+            steps {
+                sh 'docker build . -t shubhamkalsait1/ginger-reservation-app:latest'
+            }
+        }
+        stage ('DOCKER-PUSH') {    
+            steps {
+                sh 'docker push  shubhamkalsait1/ginger-reservation-app:latest'
+            }
+        }
+        stage ('DEPLOY') {    
+            steps {
+                sh 'kubectl apply -f yaml/'
+            }
+        }
+    }
+}

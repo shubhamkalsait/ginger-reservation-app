@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ginger-reservation-app
+  labels:
+    app: ginger-reservation-app
+spec:
+  selector:
+    matchLabels:
+      app: ginger-reservation-app
+  replicas: 2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: ginger-reservation-app
+    spec:
+      containers:
+      - name: ginger-reservation-app
+        image: shubhamkalsait1/ginger-reservation-app:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
